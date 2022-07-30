@@ -13,12 +13,16 @@ class ViewController: UIViewController {
     @IBOutlet weak var button3: UIButton!
     
     var countries: [String] = []
-    var score = 0
+    var score = 0, highScore: Int!
     var correctAnswer = 0
     var questionsAnswered = 0
     
+    let defaults = UserDefaults.standard
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        highScore = defaults.integer(forKey: "flagguesserhighscore")
         
         countries += ["estonia", "france", "germany", "ireland", "italy", "monaco", "nigeria", "poland", "russia", "uk", "us"]
         
@@ -57,10 +61,19 @@ class ViewController: UIViewController {
     @IBAction func buttonTapped(_ sender: UIButton) {
         questionsAnswered += 1
         
-        var alertTitle: String
+        var alertTitle: String,
+            alertMessage = "",
+            alertAction = ""
+        
         if sender.tag == correctAnswer {
             alertTitle = "Correct answer!"
             score += 1
+            if score > highScore {
+                highScore = score
+                saveHighScore()
+                alertTitle = "Congratulations!"
+                alertMessage = "You beat the previous high score. \nThe new high score is \(highScore!)."
+            }
         } else {
             alertTitle = "Wrong answer!\n That's the flag of \(countries[sender.tag] == "us" || countries[sender.tag] == "uk" ? countries[sender.tag].uppercased() : countries[sender.tag].capitalized)."
             score -= 1
@@ -71,11 +84,13 @@ class ViewController: UIViewController {
         }
         
         // MARK: Alerts
-        var alertMessage: String
-        var alertAction: String
         if questionsAnswered != 10 {
-            alertMessage = "Your score is \(score)"
-            alertAction = "Continue"
+            if alertMessage.isEmpty {
+                alertMessage = "Your score is \(score)"
+            }
+            if alertAction.isEmpty {
+                alertAction = "Continue"
+            }
         } else {
             alertMessage = "You completed 10 questions.\n Your final score is \(score)."
             alertAction = "Restart"
@@ -94,6 +109,10 @@ class ViewController: UIViewController {
         let alert = UIAlertController(title: nil, message: "Your score is \(score)", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Continue", style: .default, handler: nil))
         present(alert, animated: true)
+    }
+    
+    func saveHighScore() {
+        defaults.set(highScore, forKey: "flagguesserhighscore")
     }
     
 }
